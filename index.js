@@ -1,10 +1,24 @@
 //making of server
 import express from "express";
 import path from "path";
+import mongoose from "mongoose";
+
+
+mongoose.connect("mongodb://127.0.0.1:27017",{
+    dbName:"todoBackend",
+})
+.then(() => console.log("Database connected"))
+.catch((err) => console.log(err))
+
+const messageSchema = new mongoose.Schema({
+    name: String,
+    email: String,
+});
+const Message = mongoose.model("Message",messageSchema)//model = collection
 
 const app = express ();
 
-const users =[];
+// const users =[];
 
 //make public folder static /using middleware
 app.use(express.static(path.join(path.resolve(), "public")))
@@ -14,51 +28,39 @@ app.use(express.urlencoded({extended:true}))//can acess data from form
 app.set("view engine", "ejs")
 
 
-app.get('/',(req,res)=>{ //contact form get method
+app.get('/contact',(req,res)=>{ //contact form get method
     res.render("index") 
 })
 
-app.get('/success',(req,res)=>{ //sucess page 
+app.get('/success', (req,res)=>{ //sucess page 
     res.render("success") 
 })
-app.post('/',(req,res)=>{ //post method 
-    // console.log(req.body);//acess form response value
-    users.push({username:req.body.name, email: req.body.email})//push users data in array
+app.post("/contact", async (req,res)=>{ //post method 
+    const { name, email } = req.body; // name:req.bodyname, email: req.body.email,
+    await Message.create({
+        name: name,
+        email: email,
+    })//add  form data to database
     res.redirect("/success")//after form sumit send user to /sccess
 })
 
-app.get("/users",(req,res) => { // data api on / users[]
+app.get("/users", (req,res) => { // data api on / users[]
     res.json({
         users,
     })
 })
 
-app.listen(3000,() => {
-    console.log("Server is working");
+app.get('/add',async (req,res) =>{
+    await Message.create({
+        name:"huzzz",
+        email:"huzzgmail.com"
+    })
+    res.send("data added")
 })
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+app.listen(5000,() => {
+    console.log("Server is working");
+})
 
 
 
