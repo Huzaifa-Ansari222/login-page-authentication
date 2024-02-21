@@ -8,12 +8,12 @@
 </head>
 <body>
     <main>
-        <form method="post" action="/login">
-            <h1>Login now</h1>
+        <form method="post" >
+            <h1>Resigter Now </h1>
+            <input type="text" name="name" placeholder="Enter your name"/>
             <input type="email" name="email" placeholder="Enter your email"/>
             <input type="password" name="password" placeholder="Enter your password"/>
-            <p class="error" style="color: red;" > <%= locals.message %> </p>
-            <button type="submit">Login</button>
+            <button type="submit">Sign up</button>
         </form>
     </main>
 </body>
