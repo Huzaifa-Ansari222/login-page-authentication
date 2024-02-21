@@ -2,87 +2,75 @@
 import express from "express";
 import path from "path";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
+import { log } from "console";
 
-
+//connt to db
 mongoose.connect("mongodb://127.0.0.1:27017",{
     dbName:"todoBackend",
 })
 .then(() => console.log("Database connected"))
 .catch((err) => console.log(err))
 
-const messageSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name: String,
     email: String,
 });
-const Message = mongoose.model("Message",messageSchema)//model = collection
+const User = mongoose.model("User",userSchema)//model = collection
 
 const app = express ();
 
-// const users =[];
 
 //make public folder static /using middleware
 app.use(express.static(path.join(path.resolve(), "public")))
 app.use(express.urlencoded({extended:true}))//can acess data from form
+app.use(cookieParser())
 
 //setting up view engine
 app.set("view engine", "ejs")
 
+//handler
+const isAuthenticated = (req, res ,next) => {
+    const token = req.cookies.token; //or can say const {token} = req.cookies
+    if (token){ //if login
+        
+        next();  //60 line handler run
+    }
+    else{ //if logout
+        res.render("login") 
+    }
+}
 
-app.get('/contact',(req,res)=>{ //contact form get method
-    res.render("index") 
+
+app.get('/',  isAuthenticated, (req,res)=>{ 
+    res.render("logout") //if have token render this
 })
 
-app.get('/success', (req,res)=>{ //sucess page 
-    res.render("success") 
-})
-app.post("/contact", async (req,res)=>{ //post method 
-    const { name, email } = req.body; // name:req.bodyname, email: req.body.email,
-    await Message.create({
-        name: name,
-        email: email,
-    })//add  form data to database
-    res.redirect("/success")//after form sumit send user to /sccess
-})
-
-app.get("/users", (req,res) => { // data api on / users[]
-    res.json({
-        users,
+app.post('/login',async (req, res) => {
+    // console.log(req.body);
+    const {name, email} = req.body
+    // get data here 
+    const user =  await User.create({ //we get user id here
+        name,
+        email,
     })
+    //inspect>application>cookies
+    res.cookie("token",user._id ,{ //token exist  and store user id on token
+    httpOnly: true,
+    expires: new Date(Date.now()+ 60 * 1000)
+    })
+    res.redirect("/")
 })
 
-app.get('/add',async (req,res) =>{
-    await Message.create({
-        name:"huzzz",
-        email:"huzzgmail.com"
+app.get('/logout',(req, res) => {
+    res.cookie("token",null ,{
+    httpOnly: true,
+    expires: new Date(Date.now())
     })
-    res.send("data added")
+    res.redirect("/")
 })
+
 
 app.listen(5000,() => {
     console.log("Server is working");
 })
-
-
-
-
-
-
-
-
-
-
-// app.get('/',(req,res)=>{
-//     // res.send("hi")
-//     // res.sendStatus(400).send("hi")
-//     // res.json({
-//     //     sucess: true,
-//     //     products : [1,2],
-//     // })
-//     // const pathLocation = path.resolve();
-//     // res.sendFile(path.join(pathLocation,"./index.html"));
-//     res.render("index") 
-// })
-
-// app.get('/',(req,res)=>{
-//     res.sendFile("index")
-// })
