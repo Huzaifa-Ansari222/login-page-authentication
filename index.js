@@ -1,5 +1,4 @@
 //making of server
-import { log } from "console";
 import express from "express";
 import path from "path";
 
@@ -15,24 +14,25 @@ app.use(express.urlencoded({extended:true}))//can acess data from form
 app.set("view engine", "ejs")
 
 
-app.get('/',(req,res)=>{
+app.get('/',(req,res)=>{ //contact form get method
     res.render("index") 
 })
 
-app.get('/success',(req,res)=>{
+app.get('/success',(req,res)=>{ //sucess page 
     res.render("success") 
 })
-app.post('/',(req,res)=>{
+app.post('/',(req,res)=>{ //post method 
     // console.log(req.body);//acess form response value
     users.push({username:req.body.name, email: req.body.email})//push users data in array
     res.redirect("/success")//after form sumit send user to /sccess
 })
 
-app.get("/users",(req,res) => {
+app.get("/users",(req,res) => { // data api on / users[]
     res.json({
         users,
     })
 })
+
 app.listen(3000,() => {
     console.log("Server is working");
 })
