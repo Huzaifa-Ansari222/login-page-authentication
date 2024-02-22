@@ -4,7 +4,7 @@ import path from "path";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import  Jwt  from "jsonwebtoken";
-import { log } from "console";
+import bcrypt from "bcrypt";
 
 //connt to db
 mongoose.connect("mongodb://127.0.0.1:27017",{
@@ -59,11 +59,12 @@ app.post('/login', async (req,res)=>{
     let user = await User.findOne({email})
 
     if(!user) return res.redirect("/register")
-
-    const isMatch = user.password === password;
+    //TO MATCH hash pass
+    const isMatch = await bcrypt.compare(password, user.password)// (input datapasss , database password)
+    // isMatch = user.password === password; //without hash pass match 
 
     if(!isMatch) { //WRONG pass
-        return res.render("login", {message: "Invalid Password!"});
+        return res.render("login", {email, message: "Invalid Password!"});
     }
     else{
         const token = Jwt.sign({_id: user._id}, "randomSecrect")
@@ -88,11 +89,14 @@ app.post('/register',async (req, res) => {
     if(user){
         return res.redirect("/login");
     }
+    //hash pass
+    const hashedPassword = await bcrypt.hash(password,10)
+
     // get data here 
-    user =  await User.create({ //we get user id here
+    user =  await User.create({ //we store data 
         name,
         email,
-        password,
+        password: hashedPassword,
     })
     const token = Jwt.sign({_id: user._id}, "randomSecrect")
     // console.log(token);
